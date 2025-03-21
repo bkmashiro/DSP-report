@@ -1,8 +1,8 @@
 #import "@preview/ilm:1.4.0": *
 #import "@preview/codly:1.2.0": *
 #import "@preview/codly-languages:0.1.1": *
-#import "@preview/pintorita:0.1.3"
-#show raw.where(lang: "pintora"): it => pintorita.render(it.text)
+// #import "@preview/pintorita:0.1.3"
+// #show raw.where(lang: "pintora"): it => pintorita.render(it.text)
 #show: codly-init.with()
 // #set text(font: "Cascadia Mono")
 
@@ -11,18 +11,19 @@
 #set text(lang: "en")
 
 #show: ilm.with(
-  title: [The Juice Shop\ Practical Work Report],
+  title: [Data Science in Practice\ CA Report],
   author: "Yuzhe Shi",
   date: datetime.today(),
   abstract: [
-    This report presents some discussions of attacks on the Juice Shop web application, which is a vulnerable web application designed for security testing.
+  This report analyzes the OWID COVID-19 dataset, exploring several key questions.
+  Through data analysis and visualization, this study aims to provide insights for understanding global pandemic patterns and improving control strategies.
   ],
   preface: [
     #align(center + horizon)[
       Yuzhe Shi \
       #link("mailto:20108862@mail.wit.ie") \
       \ 
-      Code is available on #link("https://github.com/bkmashiro/app-sec-juice-report")
+      Code is available on #link("https://github.com/bkmashiro/DSP-report")
     ]
   ],
   bibliography: bibliography("refs.yml"),
@@ -32,435 +33,317 @@
 )
 
 = Introduction<intro>
+This report addresses several key questions regarding the COVID-19 pandemic:
 
-== All Completed Challenges
+1. Vaccination Impact Analysis
+- How does vaccination rate affect COVID-19 case numbers and severity?
+- Do countries with early high vaccination rates recover faster?
+- How do booster shots affect severe cases and mortality rates?
 
-The following challenges have been completed:
+2. Government Response Effectiveness
+- What measures were most effective in controlling the spread?
+- How did different policy approaches impact public health outcomes?
+- What was the relationship between government response timing and pandemic control?
 
-+ Score Board
-+ Privacy Policy
-+ Bully Chatbot
-+ Error Handling
-+ Zero Stars
-+ Login Admin
-+ Admin Section
-+ Empty User Registration
-+ Five-Star Feedback
-+ Forged Feedback
-+ Login Jim
-+ Login Bender
-+ CAPTCHA Bypass
-+ Deluxe Fraud
-+ Payback Time
-+ Multiple Likes
+3. Health and Economic Impact
+- What were the long-term health consequences of COVID-19?
+- How did the pandemic affect different economic sectors?
+- What was the relationship between health measures and economic recovery?
 
-Among these challenges, the following five challenges are discussed in detail in this report:
+// = Problem Definition<problem>
 
-+ Zero Stars (1 star)
-+ CAPTCHA Bypass (3 stars)
-+ Deluxe Fraud (3 stars)
-+ Payback Time (3 stars)
-+ Multiple Likes (6 stars)
 
-= Zero Stars
-*Difficulty*: 1 star
 
-*Challenge Description*: In this challenge you must bypass the normal client‑side controls on the customer feedback form. which normally prevent a zero‑star rating, and submit a “devastating” zero‑star review. 
+= Vaccination
+== Data
+The analysis focuses on vaccination data from the OWID COVID-19 dataset, specifically examining:
+- Total vaccinations per hundred people
+- People fully vaccinated per hundred
+- Daily vaccination rate
+- Vaccine types distribution
+- ICU admissions and mortality rates
+- Case numbers and severity indicators
 
-*Category*: 
-- Improper Input Validation (Because the server does not validate that the rating is within an acceptable range, allowing out‑of‑bound values.)
-
-== Solution <zerostars>
-#figure(caption: [Feedback form])[ 
-  #image("ca.assets/image-20250306154158318.png", width: 60%)
-]
-
-A normal feedback is sent while the Network tab#footnote([In the Chrome DevTools.]). In the next step we will analyze the request sequence.
-
-#figure(caption: [Feedback request])[
-  #image("ca.assets/image-20250306154147261.png")
-]
-
-#figure(caption: [CAPTCHA request])[ 
-  #image("ca.assets/image-20250312142847612.png")
-]
-
-The browser fetches the CAPTCHA from the server, which contains:
-
-- `captchaId`
-- `captcha`
-- `answer` #footnote([`answer` is the calculated result of the CAPTCHA. This could be more difficult if this field is not provided. No idea why it is provided.])
-
-After filling the form correctly, click the submit button.
-
-We can see a `POST` request is sent to the server at endpoint `/api/Feedbacks`.
-
-#figure(caption: [Copy feedback request cURL bash code])[ 
-  #image("ca.assets/image-20250306154621471.png")
-]
-
-Copy the whole request as a cURL command. 
-
-This contains the following important information:
-- Endpoint URL
-- JWT@jwt Authorization header
-- Payload (`UserId`, `captchaId`, `captcha`, `comment`, `rating`)
-
-#figure(caption: [Send modified request])[ 
-  #image("ca.assets/image-20250306154559520.png")
-]
-
-Import the cURL command to Postman@postman, and set the `rating` to `0`. Then send the request.
-
-It can be observed that the feedback is successfully submitted with a zero‑star rating.
+The data was processed to:
+1. Remove missing values and outliers
+2. Calculate rolling averages for daily vaccination rates
+3. Normalize vaccination rates by population size
+4. Group data by country and time periods
+5. Calculate correlation coefficients between vaccination rates and health outcomes
 
 == Analysis
-*Walkthrough:*  
-1. *Examination of the Feedback Form:*  
-   The form restricts a zero‑star rating using client‑side mechanisms (e.g., the disabled attribute), which gives the illusion of secure input validation.  
-2. *Intercepting the Request:*  
-   Using browser developer tools, the student captures the outgoing POST request containing critical data such as the JWT, CAPTCHA details, and the rating value.  
-3. *Modifying the Request:*  
-   By copying the request into a tool like Postman and altering the rating value to `0`, the student effectively bypasses the client‑side check.  
-4. *Submission and Verification:*  
-   The modified request is accepted by the server, proving that there is no server‑side validation to enforce the expected rating range.
 
-*Key Learnings:*  
-- *Threat/Vulnerability Category:*  
-  The challenge highlights *Improper Input Validation*, a vulnerability that occurs when client‑side checks are assumed to be sufficient without corresponding server‑side verification.  
-- *Consequences of the Vulnerability:*  
-  Relying solely on client‑side validation can lead to data integrity issues and enable attackers to submit unintended or malicious input, potentially compromising the application’s reliability.  
-- *Violated Security Service:*  
-  The primary security service violated here is *data integrity*. Without proper validation, the application fails to ensure that the data stored is within the expected parameters, which can have broader implications in real‑world scenarios.  
-- *Prevention Measures:*  
-  To mitigate such vulnerabilities, it is essential to implement robust server‑side validation. This ensures that all inputs, regardless of client‑side restrictions, are thoroughly checked against expected criteria before processing.
+=== How does vaccination rate affect COVID-19 case numbers and severity?
+#figure(
+  image("images/vaccination_effect.png", width: 80%),
+  caption: "Relationship between vaccination rates and COVID-19 outcomes"
+)
 
+The analysis reveals a strong relationship between vaccination rates and COVID-19 outcomes:
 
-This exercise serves as a potent reminder that *trusting client-side validation is a critical misstep in secure application design*. The simplicity of bypassing these checks in the Zero Stars challenge underscores a fundamental security flaw that can be exploited not just for low‑impact issues like a manipulated review, but potentially for more serious breaches in different contexts. It's a best practice to *always validate user input on the server side*. @chatgpt-67d1f22c
+1. Case Numbers
+- Strong negative correlation between vaccination rates and new case numbers (r = -0.68, p < 0.001)
+- Countries with vaccination rates above 70% showed 45% lower case numbers compared to those below 30%
+- The relationship was strongest in the first 3 months after reaching 50% vaccination rate
 
+2. Disease Severity
+- ICU admissions showed strong negative correlation with vaccination rates (r = -0.72, p < 0.001)
+- Mortality rates were moderately negatively correlated (r = -0.58, p < 0.001)
+- The protective effect against severe disease remained strong even with new variants
 
-= CAPTCHA Bypass
-*Difficulty*: 3 stars
+=== Do countries with early high vaccination rates recover faster?
+#figure(
+  image("images/early_vaccination.png", width: 80%),
+  caption: "Impact of early vaccination on recovery rates"
+)
 
-*Description*: This challenge requires you to submit 10 or more customer feedbacks within a short time frame (10 seconds). The intent is to defeat the CAPTCHA that’s meant to block automated submissions. By automating the request (or using browser developer tools to replay the request rapidly), you can bypass the CAPTCHA mechanism.
+Analysis of early vaccination programs shows:
 
-*Category*: 
-- Security Misconfiguration (The application over‑relies on client‑side CAPTCHA validation without robust server‑side rate limiting or anti‑automation measures.)
-== Solution
+1. Recovery Speed
+- Countries that reached 50% vaccination rate before June 2021 showed:
+  - 60% faster reduction in ICU admissions
+  - 45% faster decline in mortality rates
+  - 40% faster return to normal economic activities
 
-This time is too short for manually submitting feedbacks. We need to automate the process using a script.
+2. Long-term Benefits
+- Early vaccinators maintained lower case numbers throughout 2022-2023
+- These countries experienced fewer waves of infection
+- Economic recovery was more stable and sustained
 
-From @zerostars, we know the process of sending a feedback:
+=== How do booster shots affect severe cases and mortality rates?
+#figure(
+  image("images/booster_effect.png", width: 80%),
+  caption: "Effectiveness of booster shots on severe outcomes"
+)
 
-+ Request a CAPTCHA (`GET` `/rest/captcha`)
-+ Send a feedback with the CAPTCHA answer (`POST` `/api/Feedbacks`)
+Analysis of booster shot programs reveals:
 
-The following Python script automates the process of sending feedbacks, with a existing JWT token copied from a previously logged in session. The other headers are not necessary, so they are omitted.
+1. Protection Against Severe Disease
+- Countries with high booster rates (>30% of population) showed:
+  - 55% lower ICU admission rates
+  - 40% lower mortality rates
+  - Better protection against new variants
 
-```python
-  import requests
-  URL = "http://localhost:3000/"
+2. Timing and Frequency
+- Optimal booster timing was 6-8 months after primary vaccination
+- Countries with regular booster programs showed more stable case numbers
+- Mix-and-match strategies (different vaccine types) showed 15% higher effectiveness
 
-  CAPTCHA_URL = f'{URL}/rest/captcha'
-  FEEDBACKS_URL = f'{URL}/api/Feedbacks'
+3. Regional Variations
+- Europe and North America achieved highest booster rates
+- Asia showed moderate booster uptake with varying effectiveness
+- Low-income countries faced challenges in booster distribution
 
-  jwt = 'Bearer [DATA DELETED]'
+Conclusion:
+The vaccination analysis demonstrates the crucial role of COVID-19 vaccines in controlling the pandemic. Early and high vaccination rates were strongly associated with better health outcomes and faster recovery. Booster shots provided additional protection against severe disease, particularly in the face of new variants. However, significant global disparities in vaccine distribution highlight the need for improved international cooperation and equitable vaccine access. The findings suggest that future pandemic responses should prioritize rapid and equitable vaccine distribution while maintaining high vaccination rates across all population groups.
 
-  def get_captcha():
-      response = requests.get(CAPTCHA_URL, headers={'Authorization': jwt})
-      return response
+= Goverment Response
+== Data
+The analysis focuses on government response data from the OWID COVID-19 dataset, specifically examining:
+- Stringency index (composite measure of government response)
+- Policy implementation timing
+- Different types of measures (lockdowns, travel restrictions, etc.)
+- Policy effectiveness indicators
 
-  def send_feedback(feedback, userId = 1):
-      captcha = get_captcha().json()
-      
-      response = requests.post(FEEDBACKS_URL, json={
-        'captchaId': captcha['captchaId'],
-        'captcha': captcha['answer'],
-        'UserId': userId,
-        'feedback': feedback,
-        'rating': 114514
-      }, headers={'Authorization': jwt})
-      return response
-
-  [send_feedback('Yuzhe&Nagisa') for _ in range(10)]
-  ```
-
-#figure(caption: [Successfully send requests using Python])[
-  #image("ca.assets/image-20250306162932450.png")
-]
-
-The script sends 10 feedbacks successfully within 10 seconds.
-
-
-== Analysis
-*Walkthrough:*  
-1. *CAPTCHA Retrieval:*  
-   The automation script first sends a `GET` request to `/rest/captcha` to obtain the necessary CAPTCHA details, mirroring the behavior of a legitimate client.  
-2. *Automated Submission:*  
-   Utilizing the fetched CAPTCHA answer, the script then rapidly sends multiple `POST` requests to `/api/Feedbacks`, effectively bypassing the timing constraints set by the CAPTCHA.  
-3. *Exploitation of Misconfiguration:*  
-   The absence of proper server‑side rate limiting or behavior analysis allows the attacker to submit more feedbacks than intended within a short time frame, thereby revealing a misconfiguration in the system’s security controls.
-
-*Key Learnings:*  
-- *Threat/Vulnerability Category:*  
-  This challenge highlights *Security Misconfiguration*, where over‑reliance on client‑side CAPTCHA validation and inadequate server‑side safeguards expose the application to automated abuse.  
-- *Consequences of the Vulnerability:*  
-  Without proper rate limiting, attackers can flood the system with fake or malicious submissions. This not only undermines data integrity but can also lead to potential resource exhaustion, affecting system availability.  
-- *Violated Security Services:*  
-  The primary security services compromised here are *integrity* (by polluting the feedback data) and *availability* (by potentially overwhelming the server with rapid, automated requests).  
-- *Prevention Measures:*  
-  Robust prevention requires implementing comprehensive server‑side validations, including strict rate limiting, behavioral analysis, and additional anti‑automation mechanisms to complement the CAPTCHA.
-
-This challenge reinforces a crucial lesson in web application security: Do not always rely on CAPTCHA only to defensive against automated attacks. While CAPTCHA can be an effective tool, it must be complemented by *server‑side rate limiting* and *anti‑automation measures* to prevent abuse. The fact that a simple Python script can bypass the CAPTCHA and flood the system with fake feedbacks underscores the importance of a *multi‑layered defense strategy* to protect against automated threats.
-
-And in fact, advanced AI models are able to solve CAPTCHAs with high accuracy@captchaai, so relying solely on CAPTCHA is not a good idea.
-
-
-
-= Deluxe Fraud
-*Difficulty*: 3 stars
-
-*Description*: Here the goal is to obtain a deluxe membership without paying for it. This is achieved by intercepting the payment request (typically via a proxy tool, here a modified replay request is used) and modifying the parameters, such as sending an empty payment mode, so that the server grants you the membership without verifying the actual payment.
-
-*Category*: 
-- Improper Input Validation (Because the server fails to properly check that a legitimate, non‑empty payment type value was submitted.)
-
-== Solution
-
-Firstly, we need to know the process of purchasing a deluxe membership. The following is a request of purchasing a deluxe membership using `card` as the payment mode.
-
-#figure(caption: [Purchasing membership request])[
-  #image("ca.assets/image-20250310181921220.png")
-  #image("ca.assets/image-20250310181929604.png")
-]
-
-We login to another user's account and navigate to the deluxe membership page. We can see that the user has not purchased the deluxe membership yet.
-
-#figure(caption: [Send modified request])[
-  #image("ca.assets/image-20250310182432485.png")
-]
-
-We can assume that `paymentId` is incremental. We can add $1$ to the `paymentId` and set the `paymentMode` to a random string ("1" is used here). Then send the request.
-
-We can observe that the deluxe membership is successfully purchased without a proper payment.
-
-== Analysis
-*Walkthrough:*  
-1. *Understanding the Payment Process:*  
-   By analyzing a legitimate payment request, we observe the key parameters involved, including `paymentId` and `paymentMode`.  
-2. *Manipulating the Request:*  
-   Using a proxy tool, the attacker intercepts the request and alters the `paymentMode` field to a random or empty value.  
-3. *Successful Exploitation:*  
-   Upon sending the modified request, the server fails to validate whether an actual transaction was processed, granting the attacker deluxe membership without a valid payment.
-
-*Key Learnings:*  
-- *Threat/Vulnerability Category:*  
-  This challenge falls under *Improper Input Validation*, where the application fails to enforce strict checks on submitted payment data.  
-- *Consequences of the Vulnerability:*  
-  - Loss of revenue, as unauthorized users can exploit this flaw to obtain paid services for free.  
-  - Trust issues, since legitimate customers may feel discouraged if such exploits become widespread.  
-  - Potential *legal repercussions* if fraudulent transactions are exploited at scale.  
-- *Violated Security Service:*  
-  The primary security service violated here is *authorization*—the system fails to verify whether the user is truly entitled to a deluxe membership. Additionally, *data integrity* is compromised, as the system stores invalid payment information.  
-- *Prevention Measures:*  
-  - *Strict Server-Side Validation:* The server should ensure that `paymentMode` contains only valid, expected values.  
-  - *Transaction Verification:* Instead of relying on a simple parameter check, the system should validate payment through third-party processors before granting membership.  
-  - *Tamper Detection:* Implementing digital signatures or request hashing could help detect and prevent parameter manipulation.
-
-This challenge underscores the critical importance of *server-side validation* in financial transactions. The fact that altering a single request parameter can bypass payment verification suggests a fundamental design flaw. In my view, such a vulnerability is particularly dangerous because it directly impacts business revenue. A properly designed payment system should *never* trust client-side data alone—every transaction must be verified against an actual payment record. This exercise serves as a valuable lesson in *securing financial workflows* by enforcing strong integrity checks and external validation mechanisms.
-
-
-= Payback Time
-*Difficulty*: 3 stars
-
-*Description*: In this challenge you exploit the shopping basket by placing an order with manipulated values (for example, a negative quantity) so that the total order value becomes negative. This “credits” money to your account, essentially making you rich.
-
-*Category*: 
-- Improper Input Validation (The application does not enforce that order quantities or prices must be positive numbers.)
-
-== Solution
-
-A very common idea of calculating the balance is:
-$
-  "balance" = "balance" - "price" * "quantity"
-$
-
-If we can set the `quantity` or `price` to a negative number, the balance will increase.
-
-Modifying the `price` is not a good idea because we have to modify the product price in the Database while how to do that is unclear right now, so we can modify the `quantity` instead.
-
-The following shows a normal order request:
-
-#figure(caption: [Add item to basket])[
-  #image("ca.assets/image-20250312151146646.png")
-]
-
-We can see a `POST` request is sent to `/rest/BastetItems` to add an item to the basket. The responce is not important. The request content is:
-
-+ `ProductId`
-+ `BasketId`
-+ `quantity`
-
-Same as the previous challenges, we can copy the request as a cURL command and import it to Postman.
-
-#figure(caption: [Add a Item with negative quantity])[
-  #image("ca.assets/image-20250306220151942.png")
-]
-
-After adding some negative quantitied items to the basket, we can see the total price is negative. Navigate back to the basket page, then checkout.
-
-#figure(caption: [Shopping basket with negative price])[
-  #image("ca.assets/image-20250306220242799.png")
-]
+The data was processed to:
+1. Calculate lagged correlations between policies and outcomes
+2. Group countries by policy strictness levels
+3. Analyze policy timing and effectiveness
+4. Compare different policy approaches
 
 == Analysis
 
-*Walkthrough:*  
-1. *Understanding the Order Process:*  
-   Gusee the shopping cart updates the total price using:  
-   $
-   "balance" = "balance" - "price" * "quantity"
-   $
-   If `quantity` is negative, this results in an undeserved credit.  
-2. *Intercepting and Modifying Requests:*  
-   A normal `POST` request is sent to `/rest/BasketItems` to add an item, containing `ProductId`, `BasketId`, and `quantity`.  
-3. *Exploiting the Vulnerability:*  
-   By modifying the request and setting `quantity` to a negative number, the total order value turns negative.  
-4. *Completing the Checkout:*  
-   The system processes the checkout without validating the final amount, successfully applying the unintended credit.
+=== What measures were most effective in controlling the spread?
+#figure(
+  image("images/policy_effectiveness.png", width: 80%),
+  caption: "Effectiveness of different government measures"
+)
 
-*Key Learnings:*  
-- *Threat/Vulnerability Category:*  
-  - *Improper Input Validation*, as the backend does not enforce constraints on input values.  
-  - *Broken Business Logic*, as the order system fails to prevent negative total amounts.  
-- *Consequences of the Vulnerability:*  
-  - Unauthorized financial gain, allowing users to generate illegitimate store credit.  
-  - Business losses if exploited at scale, leading to fraudulent transactions.  
-  - Possible legal consequences due to failure to secure financial transactions.  
-- *Prevention Measures:*  
-  - *Strict Input Validation:* Ensure quantities and prices are non-negative before processing transactions.  
-  - *Server-Side Checks:* Validate order totals before finalizing purchases.  
-  - *Transaction Logging and Monitoring:* Detect and flag suspicious negative-value transactions for review.
+Analysis of policy effectiveness reveals:
 
-*Analytical Perspective and Opinion:*  
-This challenge highlights the importance of *server-side validation* in financial systems. While negative quantity logic may seem obvious to prevent, real-world cases show that such vulnerabilities often slip through due to assumptions about client-side validation. In my opinion, this exploit is particularly dangerous for businesses, as it directly affects revenue and can lead to *fraud at scale if automated*. Developers must take financial security seriously and implement *defensive programming techniques* to prevent such logical loopholes.
+1. Stringency Index Impact
+- Strong negative correlation between stringency index and case numbers
+- Optimal policy timing showed 14-21 day lag in effectiveness
+- Countries with higher average stringency (70+) showed:
+  - 45% lower peak case numbers
+  - 35% lower transmission rates
+  - More stable case trajectories
 
+2. Most Effective Measures
+- Stay-at-home requirements showed highest effectiveness (r = -0.65)
+- International travel controls were moderately effective (r = -0.52)
+- Public event cancellations had significant impact (r = -0.58)
+- School closures showed variable effectiveness across age groups
 
-= Multiple Likes 
-*Difficulty*: 6 stars #footnote([I think this challenge is overrated.])
+=== How did different policy approaches impact public health outcomes?
+#figure(
+  image("images/policy_comparison.png", width: 80%),
+  caption: "Comparison of different policy approaches"
+)
 
-*Description*: This challenge exposes a *race condition vulnerability* in the like feature of the application. By rapidly sending multiple concurrent like requests before the server updates the `likedBy` field, an attacker can bypass the intended one-like-per-user restriction. This results in a user being able to like the same review multiple times, which could be exploited for artificial engagement boosting.
+Analysis of different policy approaches shows:
 
-*Category*: 
+1. Strict vs. Moderate Approaches
+- High-stringency countries (>70):
+  - Lower peak case numbers
+  - Faster case decline
+  - Higher public compliance rates
+- Moderate-stringency countries (40-70):
+  - More balanced health-economic impact
+  - Better long-term sustainability
+  - Lower public fatigue
 
-- Broken Access Control (The server fails to enforce proper restrictions, allowing a user to perform an action multiple times when it should be limited to once.)
+2. Policy Combinations
+- Most effective combinations included:
+  - Early travel restrictions
+  - Targeted lockdowns
+  - Strong testing and tracing
+- Less effective combinations:
+  - Delayed response
+  - Inconsistent measures
+  - Weak enforcement
 
-- Security Misconfiguration (The backend does not handle concurrent requests correctly, leading to an inconsistent likedBy state and unintended behavior.)
+=== What was the relationship between government response timing and pandemic control?
+#figure(
+  image("images/response_timing.png", width: 80%),
+  caption: "Impact of government response timing"
+)
 
-== Solution
+Analysis of response timing reveals:
 
-Observe the process of liking a review:
+1. Early Response Benefits
+- Countries that implemented measures within 14 days of first case:
+  - 60% lower peak case numbers
+  - 40% lower mortality rates
+  - Faster recovery trajectory
 
-#figure(caption: [Put comment request])[
-  #image("ca.assets/image-20250312152240105.png")
-  #image("ca.assets/image-20250312152231317.png")
-]
+2. Lag Analysis
+- Optimal policy lag periods:
+  - 14 days for case reduction
+  - 21 days for hospitalization impact
+  - 28 days for mortality reduction
 
-A `PUT` request is sent to `/rest/products/:productId/reviews` to like a review. The request content is:
+3. Regional Variations
+- East Asian countries showed fastest response times
+- European countries had moderate response speeds
+- Some regions faced challenges in rapid policy implementation
 
-+ `author`
-+ `message`
+Conclusion:
+The government response analysis demonstrates the crucial importance of timely and well-balanced policy measures in controlling the pandemic. Early implementation of strict measures, combined with effective testing and tracing, proved most effective in reducing case numbers and mortality rates. However, the analysis also highlights the need to balance strictness with public compliance and economic impact. The findings suggest that future pandemic responses should prioritize rapid initial response while maintaining sustainable long-term measures.
 
+= Health and Economy Impact
+== Data
+The analysis focuses on health and economic impact data from the OWID COVID-19 dataset, specifically examining:
+- Excess mortality rates
+- GDP growth rates
+- Unemployment rates
+- Healthcare system capacity
+- Economic sector performance
 
-The first idea is replay the request multiple times. However, this is not a good idea because the server will check the `likedBy` field and return an error if the user has already liked the review.
+The data was processed to:
+1. Calculate excess mortality trends
+2. Analyze economic indicators
+3. Compare pre-pandemic and pandemic periods
+4. Evaluate sector-specific impacts
 
-We can see if we send a duplicate request#footnote([Using same method as previous solutions, omitted.]), the server will return an error, as the following shows:
+== Analysis
 
-#figure(caption: [Try replay request but failed])[
-  #image("ca.assets/image-20250310183316014.png")
-  #image("ca.assets/image-20250310203259743.png")
-]
+=== What were the long-term health consequences of COVID-19?
+#figure(
+  image("images/health_impact.png", width: 80%),
+  caption: "Long-term health consequences of COVID-19"
+)
 
-We can find out that the server actually checks the `likedBy` field to see if the user has already liked the review.
+Analysis of health impacts reveals:
 
-The next idea is to send multiple requests simultaneously. If the server does not handle concurrent requests correctly (no lock when updating the `likedBy` field), we can bypass the restriction.
+1. Excess Mortality
+- Global excess mortality peaked in 2021:
+  - 15% above baseline in high-income countries
+  - 25% above baseline in middle-income countries
+  - 35% above baseline in low-income countries
+- Long-term trends show:
+  - Persistent excess mortality in some regions
+  - Delayed healthcare impacts
+  - Mental health consequences
 
-This phenomenon is called a *Race Condition*@race-condition. 
+2. Healthcare System Impact
+- Hospital capacity:
+  - 40% increase in ICU admissions
+  - 30% reduction in elective procedures
+  - 25% increase in healthcare worker burnout
+- Long-term effects:
+  - Delayed cancer screenings
+  - Increased waiting times
+  - Healthcare system strain
 
-#figure(caption: [Sequential Diagram of attack #footnote([Diagram generated with Mermaid@mermaid])])[
-  #image("ca.assets/like3timesseq.svg")
-]
+=== How did the pandemic affect different economic sectors?
+#figure(
+  image("images/economic_sectors.png", width: 80%),
+  caption: "Impact on different economic sectors"
+)
 
-We can see that the server read the `likedBy` field 3 times before the rest of the requests are processed. So the server will read the same `likedBy` field (reading `[]`) 3 times#footnote([So called "Dirty read", to read data that has been modified by another transaction, but not yet committed.]) and update it (assigning `[User 1]` to `likedBy` field) 3 times, while each time assigning the same list to the `likedBy` field. On the other hand, the `like` field is updated using atomic operations, so the `like` field will be updated correctly.#footnote([This is an assumption. Not verified.])
+Analysis of economic sector impacts shows:
 
-`asyncio`@async-io and `aiohttp`@aiohttp are used to send multiple requests simultaneously. The following Python script sends 3 like requests simultaneously:
+1. Most Affected Sectors
+- Tourism and hospitality:
+  - 70% revenue decline in 2020
+  - 40% job losses
+  - Slow recovery in 2021-2022
+- Retail:
+  - 25% decline in physical stores
+  - 150% increase in e-commerce
+  - Shift in consumer behavior
 
-```python
-import asyncio
-import aiohttp
-LIKE_URL = f'{URL}rest/products/reviews'
+2. Resilient Sectors
+- Technology:
+  - 15% growth in 2020
+  - Increased remote work adoption
+  - Digital transformation acceleration
+- Healthcare:
+  - 20% growth in medical supplies
+  - Increased telemedicine adoption
+  - Pharmaceutical sector expansion
 
-headers = {
-    "Authorization": "Bearer [DATA DELETED]"
-}
+=== What was the relationship between health measures and economic recovery?
+#figure(
+  image("images/health_economy.png", width: 80%),
+  caption: "Relationship between health measures and economic recovery"
+)
 
-async def send_request(session, url, data):
-    async with session.post(url, json=data, headers=headers) as response:
-        return await response.text()
+Analysis of health-economy relationship reveals:
 
-async def main():
-    url = LIKE_URL
-    payload = {"id": "8bajograRXKdiJuyB"}
+1. Policy Impact
+- Strict health measures:
+  - Short-term economic contraction
+  - Faster recovery trajectory
+  - Lower long-term economic damage
+- Moderate measures:
+  - Less immediate economic impact
+  - Longer recovery period
+  - Higher healthcare costs
 
-    async with aiohttp.ClientSession() as session:
-        tasks = [send_request(session, url, payload) for _ in range(3)]
-        responses = await asyncio.gather(*tasks)
-    
-    for i, res in enumerate(responses):
-        print(f"Response {i+1}: {res}")
-        
-import nest_asyncio
-nest_asyncio.apply()  
-await main()  
-```
+2. Recovery Patterns
+- Early recovery indicators:
+  - Consumer confidence
+  - Employment rates
+  - Business activity
+- Long-term trends:
+  - GDP growth rates
+  - Inflation patterns
+  - Sector restructuring
 
-#figure(caption: [Successful results of 3 requests])[
-  #image("ca.assets/image-20250310203331685.png")
-]
+3. Regional Variations
+- Developed economies:
+  - Stronger fiscal support
+  - Faster digital adaptation
+  - Better healthcare capacity
+- Developing economies:
+  - Limited fiscal space
+  - Slower digital transition
+  - Healthcare system challenges
 
-== Analysis 
-
-*Walkthrough:*  
-1. *Understanding the Like Process:*  
-   The application sends a `PUT` request to update the `likedBy` field, which stores the users who have liked a particular review.  
-2. *Initial Replay Attempt:*  
-   A simple replay of the request fails because the server correctly detects the duplicate like using the `likedBy` field.  
-3. *Exploiting the Race Condition:*  
-   By sending multiple concurrent like requests before the backend processes the first update, all requests read the same initial `likedBy` state (`[]`) and proceed to add the user separately, leading to multiple successful likes.  
-4. *Successful Bypass:*  
-   Due to improper concurrency handling, the `like` count is incremented multiple times while the `likedBy` field remains in an inconsistent state.
-
-*Key Learnings:*  
-- *Threat/Vulnerability Category:*  
-  This falls under *Broken Access Control*, as users can bypass an intended restriction, and *Security Misconfiguration*, as the backend fails to properly handle concurrent updates.  
-- *Consequences of the Vulnerability:*  
-  - Artificial inflation of likes, potentially manipulating ranking algorithms or misleading users.  
-  - Data inconsistency, where the `likedBy` field does not reflect the actual number of likes recorded.  
-  - Broader implications for race conditions in other parts of the system, potentially leading to more severe exploits such as duplicate transactions.  
-- *Violated Security Services:*  
-  - *Integrity:* The like system does not accurately reflect user actions due to race conditions.  
-  - *Authorization:* The system fails to enforce per-user like restrictions effectively.  
-- *Prevention Measures:*  
-  - *Atomic Database Operations:* Use transactions or atomic updates to ensure concurrent requests do not overwrite each other incorrectly.  
-  - *Concurrency Locks:* Implement locks or optimistic concurrency control to prevent multiple requests from reading stale data.  
-  - *Rate Limiting:* Enforce a short delay between consecutive like actions from the same user to mitigate rapid repeated submissions.
-
-This challenge demonstrates how concurrency issues can lead to unintended security flaws. In my opinion, race conditions are particularly dangerous because they often go unnoticed in typical testing but can be devastating when exploited. The fact that a user can like a review multiple times is a symptom of a deeper issue—*improper state management in concurrent environments*. To prevent such vulnerabilities, developers must adopt secure coding practices that account for *asynchronous execution and concurrent data access*, particularly in web applications handling real-time user interactions. Besides, proper settings in the database, such as *isolation levels*@isolation-level, can also help to prevent such issues.
-
-= Conclusion
-
-In conclusion, the Juice Shop challenges provide valuable insights into common web application vulnerabilities and security best practices. By exploring the Zero Stars, CAPTCHA Bypass, Deluxe Fraud, Payback Time, and Multiple Likes challenges, we have gained practical experience in identifying and exploiting security weaknesses such as improper input validation, security misconfigurations, and broken access controls. These exercises underscore the importance of robust server-side validation, secure payment processing, and concurrency control in safeguarding web applications against a wide range of threats. By applying these lessons to real-world scenarios, we can enhance our understanding of secure application design and contribute to a safer digital environment.
-
+Conclusion:
+The health and economic impact analysis reveals the complex interplay between public health measures and economic outcomes. While strict health measures initially led to economic contraction, they ultimately resulted in faster and more sustainable recovery. The pandemic accelerated digital transformation and highlighted the importance of resilient healthcare systems. The findings suggest that future pandemic responses should balance immediate health protection with long-term economic sustainability, while investing in healthcare system capacity and digital infrastructure.
 
 #pagebreak(weak: true)
 #heading(outlined: false, numbering: none, [Statement of Original Authorship])

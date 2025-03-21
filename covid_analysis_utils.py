@@ -95,22 +95,22 @@ def get_continent_data(df, continent):
 def summarize_by_date(df, date_col='date', freq='M', agg_dict=None):
     """
     按指定日期频率汇总数据
-    
+
     参数:
     df : DataFrame - 输入的数据框
     date_col : str - 日期列名，默认为 'date'
     freq : str - 重采样频率 ('D'日, 'W'周, 'M'月, 'Q'季, 'Y'年)
     agg_dict : dict - 自定义聚合方法字典
-    
+
     返回:
     DataFrame - 按指定频率汇总后的数据
     """
     # 确保日期列为datetime类型
     df[date_col] = pd.to_datetime(df[date_col])
-    
+
     # 设置日期为索引
     df_temp = df.set_index(date_col)
-    
+
     # 如果没有提供聚合方法字典，自动生成
     if agg_dict is None:
         agg_dict = {}
@@ -118,11 +118,11 @@ def summarize_by_date(df, date_col='date', freq='M', agg_dict=None):
             # 获取列的数据类型
             dtype = df_temp[column].dtype
             dtype_str = str(dtype)  # 转换为字符串进行判断
-            
+
             # 根据数据类型选择合适的聚合方法
-            if ('int' in dtype_str.lower() or 
-                'float' in dtype_str.lower() or 
-                'number' in dtype_str.lower()):  # 数值型数据
+            if ('int' in dtype_str.lower() or
+                'float' in dtype_str.lower() or
+                    'number' in dtype_str.lower()):  # 数值型数据
                 agg_dict[column] = 'mean'  # 数值取平均
             elif dtype_str == 'object' or 'string' in dtype_str.lower():  # 文本数据
                 agg_dict[column] = 'first'  # 文本取第一个值
@@ -130,10 +130,10 @@ def summarize_by_date(df, date_col='date', freq='M', agg_dict=None):
                 agg_dict[column] = 'first'  # 日期取第一个值
             else:
                 agg_dict[column] = 'first'  # 其他类型默认取第一个值
-    
+
     # 按日期频率重采样并使用指定的聚合方法
     df_resampled = df_temp.resample(freq).agg(agg_dict)
-    
+
     return df_resampled.reset_index()
 
 # 绘图辅助函数
@@ -222,3 +222,38 @@ def forecast_future(model, steps=30):
     """使用拟合好的模型进行预测"""
     forecast = model.forecast(steps=steps)
     return forecast
+
+
+def plot_frequency_distribution(df, variables):
+    """绘制频率分布图"""
+    # 创建子图
+    fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+    axes = axes.ravel()
+
+
+    for idx, var in enumerate(variables):
+        data = df[var].dropna()
+        q95 = np.percentile(data, 95)
+        data = data[data <= q95]
+        
+        # 使用更高效的绘图方法
+        axes[idx].hist(data, bins=50, density=True, alpha=0.6)
+        
+        # 添加基本统计信息
+        stats_text = f'data statistics (95% quantile):\n'
+        stats_text += f'mean: {data.mean():.2f}\n'
+        stats_text += f'median: {data.median():.2f}\n'
+        stats_text += f'sample size: {len(data):,}'
+        
+        axes[idx].text(0.95, 0.95, stats_text,
+                    transform=axes[idx].transAxes,
+                    verticalalignment='top',
+                    horizontalalignment='right',
+                    bbox=dict(facecolor='white', alpha=0.8))
+        
+        axes[idx].set_title(f'{var} freq diagram (95% quantile)')
+        axes[idx].set_xlabel(var)
+        axes[idx].set_ylabel('density')
+
+    plt.tight_layout()
+    plt.show()
