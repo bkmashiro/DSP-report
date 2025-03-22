@@ -403,9 +403,7 @@ These seemingly paradoxical findings can be explained by several factors:
 - *Testing Capacity*: Developed countries conducted more comprehensive testing, leading to higher case detection rates
 
 The study also revealed that:
-- Economic recovery followed a consistent pattern globally, with GDP decline in 2020 followed by recovery in 2021-2022
 - Policy efficiency (measured as mortality rate per unit of stringency) was higher in high-income countries
-- Healthcare system capacity and reporting standards varied significantly across income levels
 
 These findings highlight the complex relationship between health and economic indicators during the COVID-19 pandemic, suggesting that traditional assumptions about healthcare system effectiveness may need to be reconsidered in the context of global health crises.
 
