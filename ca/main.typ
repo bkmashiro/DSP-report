@@ -108,6 +108,7 @@ The analysis of COVID-19's long-term health consequences utilized the following 
 ==== Data preparation
 - data is grouped by `location`
 - data with missing mortality are removed
+- `life_expectancy_loss` is estimated by `total_deaths_per_million` #footnote("Based on WHO data, age-adjusted mortality rate can be used to estimate changes in life expectancy. This is a rough estimate that does not take into account the age distribution of the population.")
 
 === Results and Findings
 #figure(
@@ -317,14 +318,6 @@ If a country has missing values in the `extreme_poverty` and `total_deaths_per_m
 $210322 (64.39%)$ records have poverty data, covered $125$ countries.
 
 === Results and Findings
-#figure(
-  image("images/poverty_mortality_correlation.png", width: 80%),
-  caption: "Correlation between Extreme Poverty and COVID-19 Mortality Rate"
-)
-
-From the figure, we can observe that:
-- The correlation between extreme poverty and COVID-19 mortality rate is negative.
-- The relationship is not very strong.
 
 #figure(
   image("images/proverty-death.png", width: 80%),
@@ -339,6 +332,17 @@ From the figure, we can observe that:
   image("images/poverty_mortality_correlation.png", width: 80%),
   caption: "Correlation between Extreme Poverty and COVID-19 Mortality Rate"
 )
+
+From the figure, we can observe that:
+- The correlation between extreme poverty and COVID-19 mortality rate is negative.
+- The relationship is not very strong.
+
+
+
+// #figure(
+//   image("images/poverty_mortality_correlation.png", width: 80%),
+//   caption: "Correlation between Extreme Poverty and COVID-19 Mortality Rate"
+// )
 #table(
   columns: (auto, auto, auto, auto, auto),
   align: (left, center, center, center, center),
@@ -351,12 +355,13 @@ From the figure, we can observe that:
   [Stringency index], [-5.08], [12.56], [-0.404], [0.687]
 )
 The regression analysis tested two main hypotheses:
++
+  - H0: There is no significant relationship between extreme poverty and COVID-19 mortality rate
+  - H1: There is a significant relationship between extreme poverty and COVID-19 mortality rate
 
-- H0: There is no significant relationship between extreme poverty and COVID-19 mortality rate
-   H1: There is a significant relationship between extreme poverty and COVID-19 mortality rate
-
-- H0: There is no significant relationship between GDP per capita and COVID-19 mortality rate
-   H1: There is a significant relationship between GDP per capita and COVID-19 mortality rate
++ 
+  - H0: There is no significant relationship between GDP per capita and COVID-19 mortality rate
+  - H1: There is a significant relationship between GDP per capita and COVID-19 mortality rate
 
 Based on the p-values (p < 0.001 for extreme poverty and p < 0.05 for GDP per capita), we reject both null hypotheses, indicating statistically significant relationships exist.
 
@@ -370,7 +375,7 @@ Note that:
  - The condition number is 1e+5, which is very high. This indicates that there is multicollinearity in the data.#footnote("I'm considering use other models like Generalized linear model(GLM)")
 
 #figure(
-  image("images/proverty-death-heatmap.png", width: 80%),
+  image("images/poverty-death-heatmap.png", width: 80%),
   caption: "Heatmap of Extreme Poverty and COVID-19 Mortality Rate"
 )
 
