@@ -224,10 +224,10 @@ def forecast_future(model, steps=30):
     return forecast
 
 
-def plot_frequency_distribution(df, variables):
+def plot_frequency_distribution(df, variables, subplots_cols=2, subplots_rows=2):
     """绘制频率分布图"""
     # 创建子图
-    fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+    fig, axes = plt.subplots(subplots_rows, subplots_cols, figsize=(15, 12))
     axes = axes.ravel()
 
 
