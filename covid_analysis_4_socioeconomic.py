@@ -10,7 +10,7 @@
 
 # ## 1. Prep
 
-# In[1]:
+# In[2]:
 
 
 # import libs
@@ -34,7 +34,7 @@ plt.rcParams['figure.figsize'] = (12, 6)
 plt.rcParams['font.size'] = 12
 
 
-# In[2]:
+# In[3]:
 
 
 # load data
@@ -45,13 +45,13 @@ df.head()
 
 # ## 2. Clean
 
-# In[3]:
+# In[4]:
 
 
 df_clean = clean_data(df)
 
 
-# In[4]:
+# In[5]:
 
 
 # Check socioeconomic related columns
@@ -67,7 +67,7 @@ for col in socio_columns:
     print(f"- {col}: {non_null_pct:.2f}%")
 
 
-# In[5]:
+# In[6]:
 
 
 plot_frequency_distribution(
@@ -75,14 +75,14 @@ plot_frequency_distribution(
 
 
 
-# In[6]:
+# In[7]:
 
 
 plot_frequency_distribution(
     df_clean, ["total_deaths_per_million"])
 
 
-# In[7]:
+# In[8]:
 
 
 # Filter countries with sufficient socioeconomic data
@@ -105,14 +105,14 @@ socio_df = df_clean[df_clean['location'].isin(countries_with_socio_data)].copy()
 print(f"Size of filtered data: {socio_df.shape}")
 
 
-# In[8]:
+# In[9]:
 
 
 plot_frequency_distribution(
     socio_df, [*socio_columns])
 
 
-# In[9]:
+# In[10]:
 
 
 plot_frequency_distribution(
@@ -121,7 +121,7 @@ plot_frequency_distribution(
 
 # ## 3. COVID-19 to life expectancy
 
-# In[10]:
+# In[11]:
 
 
 # Analyze relationship between COVID-19 mortality rate and life expectancy
@@ -152,14 +152,14 @@ print("COVID-19 mortality rate and average life expectancy by continent:")
 print(continent_mortality)
 
 
-# In[11]:
+# In[12]:
 
 
 plot_frequency_distribution(
     country_mortality, ["total_deaths_per_million", "life_expectancy", "gdp_per_capita"])
 
 
-# In[12]:
+# In[13]:
 
 
 # Create scatter plot: Life Expectancy vs COVID-19 Mortality Rate
@@ -195,7 +195,7 @@ plt.grid(True, alpha=0.3)
 plt.tight_layout()
 
 
-# In[13]:
+# In[14]:
 
 
 # Calculate correlation between life expectancy and mortality rate
@@ -208,7 +208,7 @@ model = sm.OLS(country_mortality['total_deaths_per_million'], X).fit()
 print(model.summary())
 
 
-# In[14]:
+# In[15]:
 
 
 # Estimate life expectancy loss due to COVID-19
@@ -233,7 +233,7 @@ print(continent_life_loss.sort_values('estimated_life_expectancy_loss', ascendin
 
 # ## 4. Health Impact vs Economic Impact
 
-# In[15]:
+# In[16]:
 
 
 # Load World Bank GDP data
@@ -273,20 +273,20 @@ def load_worldbank_data():
     return gdp_data
 
 
-# In[16]:
+# In[17]:
 
 
 # load additional data: GDP data
 gdp_data = load_worldbank_data()
 
 
-# In[17]:
+# In[18]:
 
 
 gdp_data.head()
 
 
-# In[18]:
+# In[19]:
 
 
 country_impact = socio_df.groupby('location').agg({
@@ -299,7 +299,7 @@ print(country_impact.shape)
 country_impact.head()
 
 
-# In[19]:
+# In[20]:
 
 
 # Since we don't have direct GDP decline data, we'll use the stringency index as a proxy for economic impact
@@ -324,7 +324,7 @@ country_impact['income_level'] = pd.qcut(country_impact['gdp_per_capita'],
                                        labels=['Low', 'Medium-Low', 'Medium-High', 'High'])
 
 
-# In[20]:
+# In[21]:
 
 
 # drop all unmatched pairs
@@ -333,7 +333,7 @@ print(country_impact.shape)
 country_impact
 
 
-# In[21]:
+# In[22]:
 
 
 print("\nGDP Impact Analysis:")
@@ -351,7 +351,7 @@ continent_gdp = country_impact.groupby('continent').agg({
 print(continent_gdp)
 
 
-# In[22]:
+# In[23]:
 
 
 plt.figure(figsize=(10, 6))
@@ -364,7 +364,7 @@ plt.tight_layout()
 plt.savefig('ca/images/gdp_stringency_relation.png')
 
 
-# In[23]:
+# In[24]:
 
 
 plt.figure(figsize=(10, 6))
@@ -377,7 +377,7 @@ plt.tight_layout()
 plt.savefig('ca/images/gdp_continent_boxplot.png')
 
 
-# In[24]:
+# In[25]:
 
 
 plt.figure(figsize=(12, 6))
@@ -392,7 +392,7 @@ plt.tight_layout()
 plt.savefig('ca/images/gdp_trend_by_continent.png')
 
 
-# In[25]:
+# In[26]:
 
 
 plt.figure(figsize=(10, 6))
@@ -405,7 +405,7 @@ plt.tight_layout()
 plt.savefig('ca/images/gdp_per_capita_relation.png')
 
 
-# In[26]:
+# In[27]:
 
 
 plt.figure(figsize=(10, 6))
@@ -418,7 +418,7 @@ plt.tight_layout()
 plt.savefig('ca/images/gdp_income_level.png')
 
 
-# In[27]:
+# In[28]:
 
 
 plt.figure(figsize=(12, 6))
@@ -441,7 +441,7 @@ plt.tight_layout()
 plt.savefig('ca/images/gdp_stringency_income.png')
 
 
-# In[28]:
+# In[29]:
 
 
 # Analyze stringency index and mortality rate by GDP group and continent
@@ -468,7 +468,7 @@ print("\nHealth and economic impacts by continent:")
 print(continent_impact)
 
 
-# In[29]:
+# In[30]:
 
 
 # Compare stringency-mortality efficiency across GDP groups
@@ -488,7 +488,7 @@ print("Policy efficiency by income level:")
 print(gdp_efficiency)
 
 
-# In[30]:
+# In[31]:
 
 
 # Create boxplot: efficiency ratio by GDP group
@@ -504,7 +504,7 @@ plt.savefig('ca/images/efficiency-gdp.png')
 
 # ## 5. Low income countries disproportionate impact
 
-# In[31]:
+# In[32]:
 
 
 # Analyze relationship between extreme poverty and COVID-19 impact
@@ -526,7 +526,7 @@ country_poverty = country_poverty.dropna(subset=['extreme_poverty', 'total_death
 print(f"Number of countries with extreme poverty data: {len(country_poverty)}")
 
 
-# In[32]:
+# In[33]:
 
 
 # Create scatter plot: Extreme poverty rate vs COVID-19 deaths
@@ -555,7 +555,7 @@ plt.tight_layout()
 plt.savefig('ca/images/proverty-death.png')
 
 
-# In[33]:
+# In[34]:
 
 
 # Calculate correlation between extreme poverty rate and mortality rate
@@ -573,7 +573,7 @@ plt.tight_layout()
 plt.savefig('ca/images/poverty_mortality_correlation.png')
 
 
-# In[34]:
+# In[35]:
 
 
 # Multiple regression analysis: Impact of GDP, extreme poverty and stringency on mortality rate
@@ -589,7 +589,7 @@ model = sm.OLS(y, X).fit()
 print(model.summary())
 
 
-# In[35]:
+# In[36]:
 
 
 # Analyze extreme poverty and COVID-19 impact by income level
@@ -612,7 +612,7 @@ print("COVID-19 mortality rates by income and poverty level:")
 print(poverty_gdp_impact)
 
 
-# In[36]:
+# In[44]:
 
 
 # Create heatmap: GDP groups x Poverty groups vs Mortality rate
